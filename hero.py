@@ -1,5 +1,9 @@
+import base64
+
+
 class Hero:  # клас для Гравця
     def __init__(self, pos, land):  # задаємо властивості гравцю
+        self.mode = True
         self.land = land
         self.hero = loader.loadModel('smiley')
         self.hero.setColor(0.2, 0.4, 1, 1)
@@ -34,6 +38,12 @@ class Hero:  # клас для Гравця
 
     def turn_right(self):
         self.hero.setH((self.hero.getH() - 5) % 360)
+
+    def move_to(self, angle):
+        if self.mode:
+            self.just_move(angle)
+        else:
+            self.try_move(angle)
 
     def check_dir(self, angle):
         ''' повертає заокруглені зміни координат X, Y,
@@ -89,19 +99,42 @@ class Hero:  # клас для Гравця
 
     def forward(self):
         angle = self.hero.getH() % 360
-        self.just_move(angle)
+        self.move_to(angle)
 
     def back(self):
         angle = (self.hero.getH() + 180) % 360
-        self.just_move(angle)
+        self.move_to(angle)
 
     def left(self):
         angle = (self.hero.getH() + 90) % 360
-        self.just_move(angle)
+        self.move_to(angle)
 
     def right(self):
         angle = (self.hero.getH() + 270) % 360
-        self.just_move(angle)
+        self.move_to(angle)
+
+    def up(self):
+        self.hero.setZ(self.hero.getZ() + 1)
+
+    def down(self):
+        self.hero.setZ(self.hero.getZ() - 1)
+
+    def changeMode(self):
+        if self.mode:
+            self.mode = False
+        else:
+            self.mode = True
+
+    def try_move(self, angle):
+        pos = self.look_at(angle)
+        if self.land.isEmpty(pos):
+            pos = self.land.findHighestEmpty(pos)
+            self.hero.setPos(pos)
+        else:
+            pos = pos[0], pos[1], pos[2] + 1
+            if self.land.isEmpty(pos):
+                self.hero.setPos(pos)
+
 
     def accept_events(self):  # обробка подій клавіатури
         base.accept('c', self.switch_cam)
@@ -117,6 +150,12 @@ class Hero:  # клас для Гравця
         base.accept('a' + '-repeat', self.left)
         base.accept('d', self.right)
         base.accept('d' + '-repeat', self.right)
+        base.accept('e', self.up)
+        base.accept('e' + '-repeat', self.up)
+        base.accept('q', self.down)
+        base.accept('q' + '-repeat', self.down)
+        base.accept('z', self.changeMode)
+
 
 
 
